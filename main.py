@@ -115,6 +115,8 @@ def main() -> None:
     if API_ID is None or API_HASH is None:
         exit(1)
 
+    print('Client running...')
+    
     app.run()
     
     
