@@ -1,10 +1,14 @@
+import os
 import json
+import dotenv
 
 from pyrogram import Client, filters, types
 
 
-API_ID = 000
-API_HASH = 'aaa'
+dotenv.load_dotenv()
+
+API_ID = os.getenv('API_ID')
+API_HASH = os.getenv('API_HASH')
 
 
 app = Client(
@@ -34,6 +38,15 @@ def load_chats() -> None:
     return chats
 
 
+def add_chat(chat_id) -> None:
+    with open('chats.json', 'r', encoding='utf-8') as f:
+        chats_dict: dict = json.load(f)
+        chats_dict.get('chats', ['me']).append(chat_id)
+        
+    with open('chats.json', 'w', encoding='utf-8') as f:
+        json.dump(chats_dict, f, indent=4)
+
+      
 @app.on_message(filters.me & filters.regex(r'^show chat id$'))
 async def show_chat_id(app: Client, message: types.Message):
     await message.delete()
@@ -42,6 +55,18 @@ async def show_chat_id(app: Client, message: types.Message):
         f'Chat ID: {message.chat.id}'
     )
 
+
+@app.on_message(filters.me & filters.regex(r'^add chat id$'))
+async def show_chat_id(app: Client, message: types.Message):
+    await message.delete()
+    
+    add_chat(message.chat.id)
+    
+    await app.send_message(
+        'me',
+        f'Add ID: {message.chat.id}\n Tittle: {message.chat.title or message.chat.first_name}'
+    )
+    
 
 @app.on_message(filters.me & filters.regex(r'^show user id$'))
 async def show_user_id(app: Client, message: types.Message):
@@ -86,4 +111,12 @@ async def send_promo(app: Client, message: types.Message):
                     print(e)
 
 
-app.run()
+def main() -> None:
+    if API_ID is None or API_HASH is None:
+        exit(1)
+
+    app.run()
+    
+    
+if __name__ == '__main__':
+    main()
